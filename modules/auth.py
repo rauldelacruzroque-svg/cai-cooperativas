@@ -12,6 +12,9 @@ import os
 def get_supabase() -> Client:
     url = st.secrets["SUPABASE_URL"]
     key = st.secrets["SUPABASE_KEY"]
+    st.write("DEBUG URL repr:", repr(url))
+    st.write("DEBUG URL length:", len(url))
+    st.write("DEBUG KEY length:", len(key))
     return create_client(url, key)
 
 
