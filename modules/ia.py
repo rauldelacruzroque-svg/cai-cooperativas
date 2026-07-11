@@ -81,7 +81,7 @@ def analizar_pdfs(archivos: list) -> dict:
     })
 
     response = client.messages.create(
-        model="claude-opus-4-5",
+        model="claude-opus-4-8",
         max_tokens=4096,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": content}]
