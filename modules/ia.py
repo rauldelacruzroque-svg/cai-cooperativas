@@ -26,12 +26,18 @@ sin comillas triples. El JSON debe tener exactamente esta estructura:
     "total_socios": "número como string"
   },
   "graficas": {
-    "prestamos_por_mes": [{"mes": "Ene", "monto": 0}],
-    "recuperacion_por_mes": [{"mes": "Ene", "porcentaje": 0}],
+    "desembolsos_vs_cobros": [{"mes": "Ene", "desembolsado": 0, "cobrado": 0}],
+    "tendencia_mora": [{"mes": "Ene", "porcentaje_mora": 0}],
     "distribucion_cartera": [{"categoria": "nombre", "monto": 0}],
     "flujo_neto": [{"mes": "Ene", "neto": 0}],
-    "estado_mora": [{"estado": "Al día", "monto": 0}, {"estado": "En mora", "monto": 0}]
+    "mora_por_antiguedad": [
+      {"rango": "0-30 días", "monto": 0},
+      {"rango": "31-60 días", "monto": 0},
+      {"rango": "61-90 días", "monto": 0},
+      {"rango": "90+ días", "monto": 0}
+    ]
   },
+  "meta_mora_pct": 5,
   "resumen": ["Punto clave 1: hallazgo breve y específico.", "Punto clave 2: hallazgo breve y específico.", "Punto clave 3: hallazgo breve y específico.", "Punto clave 4: hallazgo breve y específico.", "Punto clave 5: hallazgo breve y específico."],
   "acciones": [
     {"prioridad": "urgente", "texto": "descripción de la acción"},
@@ -67,6 +73,19 @@ solo si los documentos no contienen información relevante para él; nunca inven
    colchón suficiente frente a un eventual aumento de la mora.
 7. Un punto positivo balanceado: al menos un hallazgo favorable (ej. crecimiento de socios, mejora
    en algún canal o categoría), para mantener el resumen objetivo y no solo negativo.
+
+Sobre las gráficas:
+- "desembolsos_vs_cobros": monto desembolsado (prestado) y monto cobrado por cada mes, para poder
+  comparar si la cooperativa está prestando más de lo que recupera.
+- "tendencia_mora": el porcentaje de mora (cartera vencida / cartera total) de cada mes, para poder
+  graficar la tendencia. Si solo hay un período disponible, devuelve un solo elemento en la lista.
+- "mora_por_antiguedad": distribución del monto en mora según los días de atraso. Si los documentos
+  no detallan antigüedad, estima con buen juicio a partir de la información disponible (por ejemplo,
+  descripciones de "más de 100 días vencidos"); si no hay ninguna base razonable, usa 0 en todos los
+  rangos.
+- "meta_mora_pct": el límite o meta prudencial de mora para una cooperativa de ahorro y crédito según
+  buenas prácticas del sector (usa 5 como valor por defecto si los documentos no especifican una meta
+  propia).
 """
 
 
