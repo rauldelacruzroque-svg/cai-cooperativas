@@ -48,7 +48,11 @@ if not st.session_state.logged_in:
 else:
     # Sidebar
     with st.sidebar:
-        st.image("assets/logo_cai.png", width=140) if __import__("os").path.exists("assets/logo_cai.png") else st.markdown("## 🏦 CAI Cooperativas")
+        import os
+        if os.path.exists("assets/logo_cai.png"):
+            st.image("assets/logo_cai.png", width=140)
+        else:
+            st.markdown("## 🏦 CAI Cooperativas")
         st.markdown(f"**{st.session_state.get('coop_nombre', 'Cooperativa')}**")
         st.caption(f"Usuario: {st.session_state.get('username', '')}")
         st.divider()
