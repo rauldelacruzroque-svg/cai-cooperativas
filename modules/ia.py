@@ -95,6 +95,10 @@ Sobre las gráficas:
 - "meta_mora_pct": el límite o meta prudencial de mora para una cooperativa de ahorro y crédito según
   buenas prácticas del sector (usa 5 como valor por defecto si los documentos no especifican una meta
   propia).
+
+Sobre "total_socios": busca este dato bajo cualquier término equivalente que puedan usar los
+documentos ("socios", "asociados", "afiliados", "miembros", "clientes activos", "cuentahabientes").
+Solo usa "N/D" si ninguna de estas variantes aparece en los documentos.
 """
 
 
