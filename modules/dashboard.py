@@ -43,66 +43,112 @@ def render_accion(accion: dict):
     """, unsafe_allow_html=True)
 
 
-def render_graficas(graficas: dict):
+def _tiene_datos_reales(data: list, campos_numericos: list) -> bool:
+    """Devuelve False si la lista está vacía o si todos los campos numéricos indicados son 0.
+    Evita mostrar gráficas vacías cuando una cooperativa no reporta ese dato."""
+    if not data:
+        return False
+    for fila in data:
+        for campo in campos_numericos:
+            valor = fila.get(campo, 0)
+            try:
+                if float(valor) != 0:
+                    return True
+            except (TypeError, ValueError):
+                continue
+    return False
+
+
+def render_graficas(graficas: dict, meta_mora_pct: float = 5.0):
     g = graficas or {}
 
     col1, col2 = st.columns(2)
 
-    # 1) Préstamos por mes
+    # 1) Desembolsos vs Cobros por mes (combinado)
     with col1:
-        data = g.get("prestamos_por_mes", [])
-        if data:
+        data = g.get("desembolsos_vs_cobros", [])
+        if _tiene_datos_reales(data, ["desembolsado", "cobrado"]):
             df = pd.DataFrame(data)
-            fig = px.bar(df, x="mes", y="monto", title="💰 Monto prestado por mes",
-                         color_discrete_sequence=["#3b5bdb"])
-            fig.update_layout(margin=dict(t=40, b=20), height=280)
+            fig = go.Figure()
+            fig.add_trace(go.Bar(x=df["mes"], y=df["desembolsado"],
+                                  name="Desembolsado", marker_color="#3b5bdb"))
+            fig.add_trace(go.Bar(x=df["mes"], y=df["cobrado"],
+                                  name="Cobrado", marker_color="#2f9e44"))
+            fig.update_layout(title="💰 Desembolsos vs. Cobros por mes",
+                               barmode="group", margin=dict(t=40, b=20), height=300,
+                               legend=dict(orientation="h", yanchor="bottom", y=1.02))
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.caption("💰 Desembolsos vs. Cobros: no disponible en los documentos.")
 
-    # 2) % Recuperación por mes
+    # 2) Tendencia de mora con línea de meta
     with col2:
-        data = g.get("recuperacion_por_mes", [])
-        if data:
+        data = g.get("tendencia_mora", [])
+        if _tiene_datos_reales(data, ["porcentaje_mora"]):
             df = pd.DataFrame(data)
-            fig = px.line(df, x="mes", y="porcentaje", title="📈 % Recuperación mensual",
-                          markers=True, color_discrete_sequence=["#2f9e44"])
-            fig.update_layout(margin=dict(t=40, b=20), height=280)
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=df["mes"], y=df["porcentaje_mora"],
+                                      mode="lines+markers", name="% Mora",
+                                      line=dict(color="#e03131", width=3)))
+            fig.add_hline(y=meta_mora_pct, line_dash="dash", line_color="#f59f00",
+                          annotation_text=f"Meta: {meta_mora_pct}%",
+                          annotation_position="top left")
+            fig.update_layout(title="📈 Tendencia de mora vs. meta",
+                               margin=dict(t=40, b=20), height=300)
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.caption("📈 Tendencia de mora: no disponible en los documentos.")
 
     col3, col4 = st.columns(2)
 
-    # 3) Distribución cartera
+    # 3) Distribución de cartera (barra horizontal, ordenada)
     with col3:
         data = g.get("distribucion_cartera", [])
-        if data:
-            df = pd.DataFrame(data)
-            fig = px.pie(df, names="categoria", values="monto", hole=0.45,
-                         title="🗂 Distribución de cartera")
-            fig.update_layout(margin=dict(t=40, b=20), height=280)
+        if _tiene_datos_reales(data, ["monto"]):
+            df = pd.DataFrame(data).sort_values("monto", ascending=True)
+            fig = px.bar(df, x="monto", y="categoria", orientation="h",
+                         title="🗂 Distribución de cartera por categoría",
+                         color_discrete_sequence=["#3b5bdb"])
+            fig.update_layout(margin=dict(t=40, b=20), height=300,
+                               yaxis_title="", xaxis_title="")
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.caption("🗂 Distribución de cartera: no disponible en los documentos.")
 
-    # 4) Flujo neto
+    # 4) Flujo neto mensual + acumulado
     with col4:
         data = g.get("flujo_neto", [])
-        if data:
+        if _tiene_datos_reales(data, ["neto"]):
             df = pd.DataFrame(data)
+            df["acumulado"] = df["neto"].cumsum()
             colors_bar = ["#2f9e44" if v >= 0 else "#e03131" for v in df["neto"]]
-            fig = go.Figure(go.Bar(x=df["mes"], y=df["neto"],
-                                   marker_color=colors_bar, name="Flujo neto"))
-            fig.update_layout(title="📊 Flujo neto mensual",
-                               margin=dict(t=40, b=20), height=280)
+            fig = go.Figure()
+            fig.add_trace(go.Bar(x=df["mes"], y=df["neto"], name="Flujo neto mensual",
+                                  marker_color=colors_bar))
+            fig.add_trace(go.Scatter(x=df["mes"], y=df["acumulado"], name="Acumulado",
+                                      mode="lines+markers", line=dict(color="#1a1a2e", width=2),
+                                      yaxis="y2"))
+            fig.update_layout(title="📊 Flujo neto mensual y acumulado",
+                               margin=dict(t=40, b=20), height=300,
+                               yaxis=dict(title="Mensual"),
+                               yaxis2=dict(title="Acumulado", overlaying="y", side="right"),
+                               legend=dict(orientation="h", yanchor="bottom", y=1.02))
             st.plotly_chart(fig, use_container_width=True)
+        else:
+            st.caption("📊 Flujo neto: no disponible en los documentos.")
 
-    # 5) Estado mora (centrado)
-    data = g.get("estado_mora", [])
-    if data:
+    # 5) Mora por antigüedad (centrado)
+    data = g.get("mora_por_antiguedad", [])
+    if _tiene_datos_reales(data, ["monto"]):
         col5, col6, col7 = st.columns([1, 2, 1])
         with col6:
             df = pd.DataFrame(data)
-            fig = px.pie(df, names="estado", values="monto",
-                         title="🔴 Estado de mora vs al día",
-                         color="estado",
-                         color_discrete_map={"Al día": "#2f9e44", "En mora": "#e03131"})
-            fig.update_layout(margin=dict(t=40, b=20), height=300)
+            colors_aging = ["#f59f00", "#f08c00", "#e8590c", "#e03131"]
+            fig = px.bar(df, x="rango", y="monto",
+                         title="🔴 Cartera en mora por antigüedad",
+                         color="rango", color_discrete_sequence=colors_aging)
+            fig.update_layout(margin=dict(t=40, b=20), height=320, showlegend=False,
+                               xaxis_title="", yaxis_title="")
             st.plotly_chart(fig, use_container_width=True)
 
 
@@ -196,7 +242,12 @@ def render_dashboard():
 
     # ── GRÁFICAS ────────────────────────────────────────
     st.markdown("### 📈 Gráficas")
-    render_graficas(result.get("graficas", {}))
+    meta_mora = result.get("meta_mora_pct", 5)
+    try:
+        meta_mora = float(meta_mora)
+    except (TypeError, ValueError):
+        meta_mora = 5.0
+    render_graficas(result.get("graficas", {}), meta_mora_pct=meta_mora)
 
     st.divider()
 
