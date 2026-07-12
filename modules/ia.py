@@ -32,7 +32,7 @@ sin comillas triples. El JSON debe tener exactamente esta estructura:
     "flujo_neto": [{"mes": "Ene", "neto": 0}],
     "estado_mora": [{"estado": "Al día", "monto": 0}, {"estado": "En mora", "monto": 0}]
   },
-  "resumen": "Párrafo ejecutivo de 4-6 oraciones con análisis de la situación financiera actual, tendencias y riesgos principales.",
+  "resumen": ["Punto clave 1: hallazgo breve y específico.", "Punto clave 2: hallazgo breve y específico.", "Punto clave 3: hallazgo breve y específico.", "Punto clave 4: hallazgo breve y específico.", "Punto clave 5: hallazgo breve y específico."],
   "acciones": [
     {"prioridad": "urgente", "texto": "descripción de la acción"},
     {"prioridad": "media", "texto": "descripción de la acción"},
@@ -44,6 +44,11 @@ sin comillas triples. El JSON debe tener exactamente esta estructura:
 
 Si algún dato no está disponible en los documentos, usa "N/D" para strings o 0 para números.
 Siempre devuelve exactamente 5 acciones. Los meses en graficas deben ser abreviaciones de 3 letras.
+"resumen" debe tener SIEMPRE un mínimo de 5 y máximo de 7 puntos clave (highlights). Cada punto debe
+ser una sola oración corta y concreta (máximo 25 palabras), enfocada en un dato o hallazgo específico
+(cifras, tendencias, riesgos). No repitas información entre puntos. No uses el símbolo "$" para
+moneda dentro de los textos de "resumen" ni de "acciones"; escribe "RD" seguido del monto (ejemplo:
+"RD151.4 millones") en su lugar, para evitar problemas de formato.
 """
 
 
