@@ -157,7 +157,7 @@ def render_dashboard():
 
     # ── ANÁLISIS ────────────────────────────────────────
     if generar and archivos:
-        with st.spinner("La IA está analizando tus documentos... esto toma unos segundos."):
+        with st.spinner("Analizando tus documentos... esto toma unos segundos."):
             try:
                 result = analizar_pdfs(archivos)
                 st.session_state.analisis_result = result
