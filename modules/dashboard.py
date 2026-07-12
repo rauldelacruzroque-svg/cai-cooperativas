@@ -75,8 +75,8 @@ def render_graficas(graficas: dict, meta_mora_pct: float = 5.0):
             fig.add_trace(go.Bar(x=df["mes"], y=df["cobrado"],
                                   name="Cobrado", marker_color="#2f9e44"))
             fig.update_layout(title="💰 Desembolsos vs. Cobros por mes",
-                               barmode="group", margin=dict(t=40, b=20), height=300,
-                               legend=dict(orientation="h", yanchor="bottom", y=1.02))
+                               barmode="group", margin=dict(t=40, b=60), height=330,
+                               legend=dict(orientation="h", yanchor="top", y=-0.18, x=0.5, xanchor="center"))
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.caption("💰 Desembolsos vs. Cobros: no disponible en los documentos.")
@@ -129,10 +129,10 @@ def render_graficas(graficas: dict, meta_mora_pct: float = 5.0):
                                       mode="lines+markers", line=dict(color="#1a1a2e", width=2),
                                       yaxis="y2"))
             fig.update_layout(title="📊 Flujo neto mensual y acumulado",
-                               margin=dict(t=40, b=20), height=300,
+                               margin=dict(t=40, b=60), height=330,
                                yaxis=dict(title="Mensual"),
                                yaxis2=dict(title="Acumulado", overlaying="y", side="right"),
-                               legend=dict(orientation="h", yanchor="bottom", y=1.02))
+                               legend=dict(orientation="h", yanchor="top", y=-0.18, x=0.5, xanchor="center"))
             st.plotly_chart(fig, use_container_width=True)
         else:
             st.caption("📊 Flujo neto: no disponible en los documentos.")
