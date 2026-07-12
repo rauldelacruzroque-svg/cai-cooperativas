@@ -49,6 +49,24 @@ ser una sola oración corta y concreta (máximo 25 palabras), enfocada en un dat
 (cifras, tendencias, riesgos). No repitas información entre puntos. No uses el símbolo "$" para
 moneda dentro de los textos de "resumen" ni de "acciones"; escribe "RD" seguido del monto (ejemplo:
 "RD151.4 millones") en su lugar, para evitar problemas de formato.
+
+Los puntos de "resumen" deben cubrir, EN ESTE ORDEN DE PRIORIDAD, los siguientes temas (omite un tema
+solo si los documentos no contienen información relevante para él; nunca inventes datos):
+
+1. Salud de la cartera: nivel de mora actual y si la tendencia es a la baja o al alza respecto al
+   período anterior. Es el punto más importante para el directivo.
+2. Concentración de riesgo: si un número reducido de créditos de alto monto representa una porción
+   desproporcionada de la cartera en mora (más relevante que el promedio general).
+3. Tendencia de recuperación/cobranza: dirección del % de recuperación mes a mes (no solo el dato
+   del último período), como señal temprana de deterioro o mejora en la disciplina de cobro.
+4. Liquidez y flujo de caja: si el flujo neto fue negativo en algún mes (desembolsos superando
+   cobros), y qué implica para la capacidad de seguir prestando sin fondeo externo.
+5. Calidad del crecimiento: si el crecimiento en préstamos nuevos viene acompañado de deterioro en
+   la calidad de la cartera (crecer otorgando crédito de menor calidad es una señal de alarma).
+6. Capital y solvencia: relación entre capital/patrimonio y cartera en riesgo, para evaluar si hay
+   colchón suficiente frente a un eventual aumento de la mora.
+7. Un punto positivo balanceado: al menos un hallazgo favorable (ej. crecimiento de socios, mejora
+   en algún canal o categoría), para mantener el resumen objetivo y no solo negativo.
 """
 
 
