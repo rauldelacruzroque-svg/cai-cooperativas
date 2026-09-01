@@ -56,6 +56,12 @@ sin comillas triples. El JSON debe tener exactamente esta estructura:
   ]
 }
 
+TONO Y ESTILO — OBLIGATORIO: Redacta todos los textos de "resumen" y "acciones" con el tono
+de un analista financiero senior. Usa lenguaje técnico-financiero formal (no conversacional).
+Evita frases que denoten que el texto fue generado automáticamente (no uses "se observa que",
+"es importante destacar", ni expresiones similares; prefiere oraciones directas y concretas).
+No uses la primera persona. El lector es un directivo de cooperativa con formación financiera.
+
 Si algún dato no está disponible en los documentos, usa "N/D" para strings o 0 para números.
 Siempre devuelve exactamente 5 acciones. Los meses en graficas deben ser abreviaciones de 3 letras.
 "resumen" debe tener SIEMPRE un mínimo de 5 y máximo de 7 puntos clave (highlights). Cada punto debe
