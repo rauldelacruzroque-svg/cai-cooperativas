@@ -1,9 +1,10 @@
 """
 Módulo de reporte PDF — CAI Cooperativas
-Genera reporte ejecutivo descargable con ReportLab.
+Genera informe ejecutivo financiero descargable con ReportLab.
 """
 
 import io
+import os
 from datetime import datetime
 from reportlab.lib.pagesizes import letter
 from reportlab.lib.units import inch
@@ -11,12 +12,16 @@ from reportlab.lib import colors
 from reportlab.pdfgen import canvas
 
 
-BRAND = "CAI Cooperativas – Análisis Ejecutivo"
-LOGO_PATH = "assets/logo_cai.png"
-COLOR_PRIMARY = colors.HexColor("#3b5bdb")
-COLOR_URGENTE = colors.HexColor("#e03131")
-COLOR_MEDIA = colors.HexColor("#f59f00")
-COLOR_POSITIVA = colors.HexColor("#2f9e44")
+BRAND_NAME   = "CAI Cooperativas"
+BRAND_SUB    = "Informe Ejecutivo Financiero"
+LOGO_PATH    = "assets/logo_cai.png"
+
+COLOR_PRIMARY  = colors.HexColor("#0a2463")
+COLOR_URGENTE  = colors.HexColor("#c0392b")
+COLOR_MEDIA    = colors.HexColor("#c89010")
+COLOR_POSITIVA = colors.HexColor("#1e8449")
+COLOR_RULE     = colors.HexColor("#dce3ef")
+COLOR_LABEL    = colors.HexColor("#6b7a99")
 
 
 def wrap_text(text: str, max_chars: int) -> list:
@@ -37,113 +42,185 @@ def build_pdf(coop_nombre: str, kpis: dict, resumen, acciones: list) -> bytes:
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
-    x = 0.75 * inch
-    y = height - 0.85 * inch
+    margin_l = 0.85 * inch
+    margin_r = width - 0.85 * inch
+    y = height - 0.80 * inch
 
-    # ── HEADER ──────────────────────────────────────────
-    import os
+    # Número de referencia y fecha de emisión
+    ref_num  = datetime.now().strftime("CAI-%Y%m%d-%H%M")
+    fecha_emision = datetime.now().strftime("%d de %B de %Y").upper()
+
+    # ── ENCABEZADO ──────────────────────────────────────────
     if os.path.exists(LOGO_PATH):
-        c.drawImage(LOGO_PATH, x, y - 0.9 * inch, width=0.9 * inch, height=0.9 * inch, mask="auto")
-        tx = x + 1.1 * inch
+        c.drawImage(LOGO_PATH, margin_l, y - 0.85 * inch,
+                    width=0.85 * inch, height=0.85 * inch, mask="auto")
+        tx = margin_l + 1.05 * inch
     else:
-        tx = x
+        tx = margin_l
 
+    # Nombre de la organización
     c.setFillColor(COLOR_PRIMARY)
-    c.setFont("Helvetica-Bold", 16)
-    c.drawString(tx, y, BRAND)
-    c.setFillColor(colors.black)
-    c.setFont("Helvetica", 10)
-    c.drawString(tx, y - 0.22 * inch, f"Cooperativa: {coop_nombre}")
-    c.drawString(tx, y - 0.40 * inch, f"Generado: {datetime.now().strftime('%d/%m/%Y %H:%M')}")
+    c.setFont("Helvetica-Bold", 15)
+    c.drawString(tx, y, BRAND_NAME)
 
-    # Línea separadora
+    c.setFont("Helvetica", 9)
+    c.setFillColor(COLOR_LABEL)
+    c.drawString(tx, y - 0.20 * inch, BRAND_SUB)
+    c.drawString(tx, y - 0.36 * inch, f"Cooperativa:  {coop_nombre}")
+    c.drawString(tx, y - 0.50 * inch, f"Fecha de emisión:  {fecha_emision}")
+
+    # Referencia alineada a la derecha
+    c.setFont("Helvetica", 8)
+    ref_label = f"Ref. {ref_num}"
+    c.drawRightString(margin_r, y, ref_label)
+
+    # Línea separadora doble
     c.setStrokeColor(COLOR_PRIMARY)
-    c.setLineWidth(1.5)
-    c.line(x, y - 0.58 * inch, width - 0.75 * inch, y - 0.58 * inch)
-    y = y - 0.85 * inch
+    c.setLineWidth(2)
+    c.line(margin_l, y - 0.68 * inch, margin_r, y - 0.68 * inch)
+    c.setStrokeColor(COLOR_RULE)
+    c.setLineWidth(0.5)
+    c.line(margin_l, y - 0.71 * inch, margin_r, y - 0.71 * inch)
 
-    # ── KPIs ────────────────────────────────────────────
+    y -= 0.95 * inch
+
+    # ── SECCIÓN: INDICADORES FINANCIEROS CLAVE ───────────────
     c.setFillColor(COLOR_PRIMARY)
-    c.setFont("Helvetica-Bold", 13)
-    c.drawString(x, y, "Indicadores Clave (KPIs)")
-    c.setFillColor(colors.black)
-    y -= 0.28 * inch
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(margin_l, y, "I.   INDICADORES FINANCIEROS CLAVE")
+    y -= 0.06 * inch
+    c.setStrokeColor(COLOR_RULE)
+    c.setLineWidth(0.5)
+    c.line(margin_l, y, margin_r, y)
+    y -= 0.22 * inch
 
     kpi_labels = {
-        "capital_total": "Capital total",
-        "total_prestado": "Total prestado",
-        "total_cobrado": "Total cobrado",
-        "porcentaje_recuperacion": "% Recuperación",
-        "mora_estimada": "Mora estimada",
-        "total_socios": "Total socios",
+        "capital_total":            "Capital total",
+        "total_prestado":           "Total desembolsado",
+        "total_cobrado":            "Total cobrado",
+        "porcentaje_recuperacion":  "Porcentaje de recuperación",
+        "mora_estimada":            "Mora estimada",
+        "total_socios":             "Total de socios / asociados",
     }
 
-    c.setFont("Helvetica", 10)
+    c.setFont("Helvetica", 9.5)
     for key, label in kpi_labels.items():
         val = kpis.get(key, "N/D")
-        c.drawString(x + 0.2 * inch, y, f"• {label}:  {val}")
-        y -= 0.20 * inch
+        c.setFillColor(COLOR_LABEL)
+        c.drawString(margin_l + 0.15 * inch, y, label)
+        c.setFillColor(colors.black)
+        c.setFont("Helvetica-Bold", 9.5)
+        c.drawString(margin_l + 2.7 * inch, y, str(val))
+        c.setFont("Helvetica", 9.5)
+        y -= 0.21 * inch
         if y < 1.5 * inch:
-            c.showPage(); y = height - 0.85 * inch; c.setFont("Helvetica", 10)
+            _new_page(c, width, height, margin_l, margin_r)
+            y = height - 0.85 * inch
 
-    y -= 0.12 * inch
+    y -= 0.14 * inch
 
-    # ── RESUMEN EJECUTIVO (highlights) ───────────────────
+    # ── SECCIÓN: RESUMEN EJECUTIVO ────────────────────────────
     c.setFillColor(COLOR_PRIMARY)
-    c.setFont("Helvetica-Bold", 13)
-    c.drawString(x, y, "Resumen Ejecutivo")
-    c.setFillColor(colors.black)
-    y -= 0.25 * inch
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(margin_l, y, "II.  RESUMEN EJECUTIVO")
+    y -= 0.06 * inch
+    c.setStrokeColor(COLOR_RULE)
+    c.setLineWidth(0.5)
+    c.line(margin_l, y, margin_r, y)
+    y -= 0.22 * inch
 
-    c.setFont("Helvetica", 10)
     highlights = resumen if isinstance(resumen, list) else [resumen]
-    for punto in highlights:
+    c.setFont("Helvetica", 9.5)
+    for idx, punto in enumerate(highlights, start=1):
         if not str(punto).strip():
             continue
-        lineas = wrap_text(str(punto), 90)
+        lineas = wrap_text(str(punto), 92)
         for i, line in enumerate(lineas):
-            prefix = "•  " if i == 0 else "    "
-            c.drawString(x + 0.2 * inch, y, f"{prefix}{line}")
-            y -= 0.18 * inch
+            prefix = f"{idx}.  " if i == 0 else "     "
+            c.setFillColor(colors.black if i == 0 else COLOR_LABEL)
+            c.drawString(margin_l + 0.15 * inch, y, f"{prefix}{line}")
+            y -= 0.19 * inch
             if y < 1.5 * inch:
-                c.showPage(); y = height - 0.85 * inch; c.setFont("Helvetica", 10)
-        y -= 0.05 * inch
+                _new_page(c, width, height, margin_l, margin_r)
+                y = height - 0.85 * inch
+                c.setFont("Helvetica", 9.5)
+        y -= 0.06 * inch
 
-    y -= 0.10 * inch
+    y -= 0.14 * inch
 
-    # ── ACCIONES ─────────────────────────────────────────
+    # ── SECCIÓN: ACCIONES Y RECOMENDACIONES ──────────────────
+    if y < 2.5 * inch:
+        _new_page(c, width, height, margin_l, margin_r)
+        y = height - 0.85 * inch
+
     c.setFillColor(COLOR_PRIMARY)
-    c.setFont("Helvetica-Bold", 13)
-    c.drawString(x, y, "Acciones Recomendadas")
-    c.setFillColor(colors.black)
-    y -= 0.25 * inch
+    c.setFont("Helvetica-Bold", 10)
+    c.drawString(margin_l, y, "III. ACCIONES Y RECOMENDACIONES")
+    y -= 0.06 * inch
+    c.setStrokeColor(COLOR_RULE)
+    c.setLineWidth(0.5)
+    c.line(margin_l, y, margin_r, y)
+    y -= 0.22 * inch
 
     prioridad_map = {
-        "urgente": ("⚠ URGENTE", COLOR_URGENTE),
-        "media": ("→ RECOMENDADA", COLOR_MEDIA),
-        "positiva": ("✓ POSITIVO", COLOR_POSITIVA),
+        "urgente":  ("PRIORIDAD ALTA",     COLOR_URGENTE),
+        "media":    ("RECOMENDADA",         COLOR_MEDIA),
+        "positiva": ("RESULTADO POSITIVO",  COLOR_POSITIVA),
     }
 
     for acc in acciones:
         pri = acc.get("prioridad", "media")
-        label, color = prioridad_map.get(pri, ("→", COLOR_MEDIA))
-        c.setFont("Helvetica-Bold", 9)
-        c.setFillColor(color)
-        c.drawString(x + 0.2 * inch, y, label)
-        c.setFillColor(colors.black)
-        c.setFont("Helvetica", 10)
-        for i, line in enumerate(wrap_text(acc.get("texto", ""), 88)):
-            c.drawString(x + 0.2 * inch if i == 0 else x + 0.5 * inch, y - 0.18 * inch if i > 0 else y - 0.16 * inch, line if i > 0 else f"    {line}")
-            y -= 0.18 * inch
-        y -= 0.10 * inch
-        if y < 1.5 * inch:
-            c.showPage(); y = height - 0.85 * inch
+        label, color = prioridad_map.get(pri, ("RECOMENDADA", COLOR_MEDIA))
 
-    # ── FOOTER ──────────────────────────────────────────
-    c.setFont("Helvetica", 8)
-    c.setFillColor(colors.grey)
-    c.drawString(x, 0.55 * inch, "Generado automáticamente por CAI Cooperativas · Confidencial")
+        # Badge de prioridad
+        c.setFont("Helvetica-Bold", 7.5)
+        c.setFillColor(color)
+        c.drawString(margin_l + 0.15 * inch, y, label)
+        y -= 0.17 * inch
+
+        # Texto de la acción
+        c.setFont("Helvetica", 9.5)
+        for i, line in enumerate(wrap_text(acc.get("texto", ""), 90)):
+            c.setFillColor(colors.black)
+            c.drawString(margin_l + 0.30 * inch, y, line)
+            y -= 0.19 * inch
+
+        y -= 0.09 * inch
+
+        if y < 1.5 * inch:
+            _new_page(c, width, height, margin_l, margin_r)
+            y = height - 0.85 * inch
+
+    # ── PIE DE PÁGINA ──────────────────────────────────────
+    _draw_footer(c, width, ref_num)
 
     c.save()
     buffer.seek(0)
     return buffer.read()
+
+
+def _new_page(c, width, height, margin_l, margin_r):
+    """Abre nueva página y dibuja encabezado reducido."""
+    c.showPage()
+    # Línea superior mínima
+    c.setStrokeColor(COLOR_PRIMARY)
+    c.setLineWidth(1.5)
+    c.line(margin_l, height - 0.45 * inch, margin_r, height - 0.45 * inch)
+    c.setFont("Helvetica-Bold", 9)
+    c.setFillColor(COLOR_PRIMARY)
+    c.drawString(margin_l, height - 0.36 * inch, f"{BRAND_NAME}  ·  {BRAND_SUB}")
+    _draw_footer(c, width, "")
+
+
+def _draw_footer(c, width, ref_num: str):
+    """Dibuja pie de página en la página actual."""
+    margin_l = 0.85 * inch
+    margin_r = width - 0.85 * inch
+    c.setStrokeColor(COLOR_RULE)
+    c.setLineWidth(0.5)
+    c.line(margin_l, 0.70 * inch, margin_r, 0.70 * inch)
+    c.setFont("Helvetica", 7.5)
+    c.setFillColor(COLOR_LABEL)
+    c.drawString(margin_l, 0.52 * inch, f"{BRAND_NAME}  ·  Informe Confidencial")
+    if ref_num:
+        c.drawRightString(margin_r, 0.52 * inch, f"Ref. {ref_num}")
